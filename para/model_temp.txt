@@ -1,0 +1,11 @@
+Radius1,10.0
+Radius2,10.0
+delta1,6.0
+delta2,6.0
+d1,20.0
+d2,20.0
+d3,20.0
+isCross,True
+modelFolder,D:\Users\2017\dissertation\chapter4\model
+modelName,model18.iges
+isExist,False

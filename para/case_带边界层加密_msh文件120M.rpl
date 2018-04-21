@@ -1,0 +1,146 @@
+ic_chdir $wdir$
+ic_undo_group_begin 
+ic_trans_step_tetin $modelFolder$/$pureModel$.iges $pureModel$.tin 0 {} 0 {-nounits -heal}
+ic_load_tetin $pureModel$.tin
+ic_geo_set_modified 0
+ic_csystem_display all 0
+ic_csystem_set_current global
+ic_boco_nastran_csystem reset
+ic_boco_solver 
+ic_boco_clear_icons 
+ic_csystem_display all 0
+ic_csystem_set_current global
+ic_boco_nastran_csystem reset
+ic_boco_solver 
+ic_boco_clear_icons 
+ic_csystem_display all 0
+ic_csystem_set_current global
+ic_boco_nastran_csystem reset
+ic_undo_group_end 
+
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_1 BACK 0
+ic_geo_rename_family PART_1 BACK 1
+ic_set_family_color_for_name BACK #8133ec
+ic_delete_empty_parts 
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_2 INLET 0
+ic_geo_rename_family PART_2 INLET 1
+ic_set_family_color_for_name INLET #33c0be
+ic_delete_empty_parts 
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_3 OUTLET 0
+ic_geo_rename_family PART_3 OUTLET 1
+ic_set_family_color_for_name OUTLET #83eb33
+ic_delete_empty_parts 
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_4 DOWN 0
+ic_geo_rename_family PART_4 DOWN 1
+ic_set_family_color_for_name DOWN #fe3946
+ic_delete_empty_parts 
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_5 UP 0
+ic_geo_rename_family PART_5 UP 1
+ic_set_family_color_for_name UP #7533f2
+ic_delete_empty_parts 
+ic_geo_get_valid_namelen 
+ic_geo_rename_family PART_6 FRONT 0
+ic_geo_rename_family PART_6 FRONT 1
+ic_set_family_color_for_name FRONT #33cab3
+ic_delete_empty_parts 
+
+ic_set_global geo_cad 0.1 toler
+ic_undo_group_begin 
+ic_set_meshing_params global 0 gref 1.0 gmax 1.4 gfast 0 gedgec 0.2 gnat 0 gcgap 1 gnatref 10
+ic_undo_group_end 
+ic_undo_group_begin 
+ic_set_meshing_params prism 0 law exponential layers 5 height 0.2 ratio 1.2 total_height 2 prism_height_limit 0 max_prism_height_ratio {} stair_step 1 auto_reduction 0 min_prism_quality 0.0099999998 max_prism_angle 180 fillet 0.1 tetra_smooth_limit 0.30000001 n_tetra_smoothing_steps 10 n_triangle_smoothing_steps 5
+ic_undo_group_end 
+
+ic_undo_group_begin 
+ic_geo_set_family_params BACK no_crv_inf prism 1 emax 0.0 ehgt 0.0 hrat 0 nlay 0 erat 0 ewid 0 emin 0.0 edev 0.0 split_wall 0 internal_wall 0
+ic_geo_set_family_params DOWN no_crv_inf prism 1 emax 0.0 ehgt 0.0 hrat 0 nlay 0 erat 0 ewid 0 emin 0.0 edev 0.0 split_wall 0 internal_wall 0
+ic_geo_set_family_params FRONT no_crv_inf prism 1 emax 0.0 ehgt 0.0 hrat 0 nlay 0 erat 0 ewid 0 emin 0.0 edev 0.0 split_wall 0 internal_wall 0
+ic_geo_set_family_params UP no_crv_inf prism 1 emax 0.0 ehgt 0.0 hrat 0 nlay 0 erat 0 ewid 0 emin 0.0 edev 0.0 split_wall 0 internal_wall 0
+ic_geo_set_family_params $recursion_PartListExcept_SixSurface$ no_crv_inf prism 1 emax 0.0 ehgt 0.0 hrat 0 nlay 0 erat 0 ewid 0 emin 0.0 edev 0.0 split_wall 0 internal_wall 0
+ic_undo_group_end 
+
+ic_geo_params_blank_done part 1
+ic_set_global geo_cad 0.1 toler
+ic_undo_group_begin 
+ic_run_tetra $pureModel$.tin $wdir$/tetra_mesh.uns run_cutter 1 delete_auto 1 run_smoother 0 fix_holes 1 n_processors 1 in_process 1 auto_vol 1 log ./tetra_cmd.log
+ic_geo_set_modified 1
+ic_uns_update_family_type visible {DOWN UP INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 !TETRA_4} update 0
+ic_boco_solver 
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 !TETRA_4} update 0
+ic_boco_clear_icons 
+ic_csystem_display all 0
+ic_csystem_set_current global
+ic_boco_nastran_csystem reset
+ic_uns_diagnostic diag_type single quiet 1
+ic_smooth_elements map all upto 0.4 iterations 5 fix_families {} n_processors 1 smooth TRI_3 float TETRA_4 laplace 1
+ic_smooth_elements map all upto 0.4 iterations 5 prism_warp_weight 0.5 fix_families {} n_processors 1 smooth TETRA_4 float PENTA_6 freeze TRI_3
+ic_smooth_elements map all upto 0.4 iterations 5 prism_warp_weight 0.5 fix_families {} metric Quality n_processors 1 smooth TETRA_4 smooth TRI_3 float PENTA_6
+ic_geo_set_modified 1
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 !TETRA_4} update 0
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 !TETRA_4} update 0
+ic_delete_empty_parts 
+ic_undo_group_end 
+ic_undo_group_begin 
+ic_undo_group_begin 
+ic_save_tetin temp_prism0.tin 0 0 {} {} 0
+ic_save_unstruct temp_prism0.uns
+ic_rm prism.uns
+ic_run_prism temp_prism0.tin temp_prism0.uns prism.uns params $pureModel$.prism_params log prism_cmd.log n_processors 1 first_layer_smoothing_steps 1 fillet 0.1 max_prism_angle 180 min_prism_quality 0.0099999998 tetra_smooth_limit 0.30000001 family BACK family DOWN family UP family FRONT $family PART_NUMExcept_SixSurface$
+ic_rm temp_prism0.tin
+ic_rm temp_prism0.uns
+ic_unload_mesh 
+ic_uns_diag_reset_degen_min_max 
+ic_geo_delete_family $CREATED_MATERIAL_NUM$
+ic_delete_empty_parts 
+ic_uns_load prism.uns 3 0 {} 2
+ic_uns_subset_visible {stuck elements} 0
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 QUAD_4 !TETRA_4 !PENTA_6} update 0
+ic_uns_diag_reset_degen_min_max 
+ic_boco_solver 
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 QUAD_4 !TETRA_4 !PENTA_6} update 0
+ic_boco_clear_icons 
+ic_csystem_display all 0
+ic_csystem_set_current global
+ic_boco_nastran_csystem reset
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 QUAD_4 !TETRA_4 !PENTA_6} update 0
+ic_undo_group_end 
+ic_uns_set_modified 0
+ic_uns_update_family_type visible {DOWN UP $CREATED_MATERIAL_NUM$ INLET FRONT OUTLET BACK ORFN $partListExcept_SixSurface$} {!NODE !LINE_2 TRI_3 QUAD_4 !TETRA_4 !PENTA_6} update 0
+ic_delete_empty_parts 
+ic_set_global geo_cad 0.1 toler
+ic_undo_group_end 
+ic_undo_group_begin 
+ic_boco_solver {ANSYS Fluent}
+ic_solver_mesh_info {ANSYS Fluent}
+ic_undo_group_end 
+ic_boco_solver 
+ic_boco_solver {ANSYS Fluent}
+ic_solution_set_solver {ANSYS Fluent} 1
+ic_boco_save $pureModel$.fluentAnsys.fbc 
+ic_boco_save_atr $pureModel$.fluentAnsys.atr 
+ic_delete_empty_parts 
+ic_delete_empty_parts 
+ic_save_tetin $pureModel$.tin 0 0 {} {} 0 0 1
+ic_uns_check_duplicate_numbers 
+ic_save_unstruct $pureModel$.uns 1 {} {} {}
+ic_uns_set_modified 1
+ic_boco_solver 
+ic_boco_solver {ANSYS Fluent}
+ic_solution_set_solver {ANSYS Fluent} 1
+ic_boco_save $pureModel$.fbc
+ic_boco_save_atr $pureModel$.atr
+ic_cart_is_loaded 
+
+ic_exec [file join $env(ICEM_ACN) icemcfd output-interfaces fluent6] -dom $wdir$/$pureModel$.uns -b $pureModel$.fbc -per {type trans base {0 0 0} axis {0 0 150} angle 0} ./$pureModel$ 
+ic_uns_num_couplings 
+ic_undo_group_begin 
+ic_uns_create_diagnostic_edgelist 1
+ic_uns_diagnostic subset all diag_type uncovered fix_fam FIX_UNCOVERED diag_verb {Uncovered faces} fams {} busy_off 1 quiet 1
+ic_uns_create_diagnostic_edgelist 0
+ic_undo_group_end 

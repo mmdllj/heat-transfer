@@ -1,0 +1,389 @@
+﻿# encoding: utf-8
+
+# 替换$ solveFolder/$ solveFolder的路径分隔符为/
+# 替换$ solveFolder$ solveFolder的路径分隔符为\，默认为\
+# 替换$ pureCaseName$
+# 替换$ meshFile$ meshFile的路径分隔符为\
+
+SetScriptVersion(Version="15.0")
+Save(
+    FilePath="$solveFolder/$/$pureCaseName$/$pureCaseName$.wbpj",
+    Overwrite=True)
+template1 = GetTemplate(TemplateName="CFX")
+system1 = template1.CreateSystem()
+setup1 = system1.GetContainer(ComponentName="Setup")
+setup1.Edit()
+setup1.SendCommand(Command=r"""VIEW:View 1
+  Light Angle = 50, 110
+END
+
+> update
+> gtmImport filename=$meshFile$, type=Fluent, units=mm, genOpt= -n, nameStrategy= Assembly""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+&replace   DOMAIN: Default Domain
+    Coord Frame = Coord 0
+    Domain Type = Fluid
+    Location = $CREATED_MATERIAL_NUM$
+    BOUNDARY: Default Domain Default
+      Boundary Type = WALL
+      Create Other Side = Off
+      Interface Boundary = Off
+      Location = BACK,DOWN,FRONT,INLET,OUTLET,$partListExcept_SixSurface_Comma$,UP
+      BOUNDARY CONDITIONS: 
+        MASS AND MOMENTUM: 
+          Option = No Slip Wall
+        END # MASS AND MOMENTUM:
+        WALL ROUGHNESS: 
+          Option = Smooth Wall
+        END # WALL ROUGHNESS:
+      END # BOUNDARY CONDITIONS:
+    END # BOUNDARY:Default Domain Default
+    DOMAIN MODELS: 
+      BUOYANCY MODEL: 
+        Option = Non Buoyant
+      END # BUOYANCY MODEL:
+      DOMAIN MOTION: 
+        Option = Stationary
+      END # DOMAIN MOTION:
+      MESH DEFORMATION: 
+        Option = None
+      END # MESH DEFORMATION:
+      REFERENCE PRESSURE: 
+        Reference Pressure = 1 [atm]
+      END # REFERENCE PRESSURE:
+    END # DOMAIN MODELS:
+    FLUID DEFINITION: Fluid 1
+      Material = Water
+      Option = Material Library
+      MORPHOLOGY: 
+        Option = Continuous Fluid
+      END # MORPHOLOGY:
+    END # FLUID DEFINITION:Fluid 1
+    FLUID MODELS: 
+      COMBUSTION MODEL: 
+        Option = None
+      END # COMBUSTION MODEL:
+      HEAT TRANSFER MODEL: 
+        Include Viscous Work Term = On
+        Option = Total Energy
+      END # HEAT TRANSFER MODEL:
+      THERMAL RADIATION MODEL: 
+        Option = None
+      END # THERMAL RADIATION MODEL:
+      TURBULENCE MODEL: 
+        Option = k epsilon
+      END # TURBULENCE MODEL:
+      TURBULENT HEAT TRANSFER: 
+        TURBULENT FLUX CLOSURE: 
+          Option = Eddy Diffusivity
+          Turbulent Prandtl Number = 0.9
+        END # TURBULENT FLUX CLOSURE:
+      END # TURBULENT HEAT TRANSFER:
+      TURBULENT WALL FUNCTIONS: 
+        High Speed Model = Off
+        Option = Scalable
+      END # TURBULENT WALL FUNCTIONS:
+    END # FLUID MODELS:
+  END # DOMAIN:Default Domain
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+  DOMAIN: Default Domain
+&replace     BOUNDARY: inlet
+      Boundary Type = INLET
+      Interface Boundary = Off
+      Location = INLET
+      BOUNDARY CONDITIONS: 
+        FLOW REGIME: 
+          Option = Subsonic
+        END # FLOW REGIME:
+        HEAT TRANSFER: 
+          Option = Static Temperature
+          Static Temperature = 293.15 [K]
+        END # HEAT TRANSFER:
+        MASS AND MOMENTUM: 
+          Normal Speed = $flowrate$ [m s^-1]
+          Option = Normal Speed
+        END # MASS AND MOMENTUM:
+        TURBULENCE: 
+          Option = Medium Intensity and Eddy Viscosity Ratio
+        END # TURBULENCE:
+      END # BOUNDARY CONDITIONS:
+    END # BOUNDARY:inlet
+  END # DOMAIN:Default Domain
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+  DOMAIN: Default Domain
+&replace     BOUNDARY: outlet
+      Boundary Type = OUTLET
+      Interface Boundary = Off
+      Location = OUTLET
+      BOUNDARY CONDITIONS: 
+        FLOW REGIME: 
+          Option = Subsonic
+        END # FLOW REGIME:
+        MASS AND MOMENTUM: 
+          Option = Average Static Pressure
+          Pressure Profile Blend = 0.05
+          Relative Pressure = 0 [Pa]
+        END # MASS AND MOMENTUM:
+        PRESSURE AVERAGING: 
+          Option = Average Over Whole Outlet
+        END # PRESSURE AVERAGING:
+      END # BOUNDARY CONDITIONS:
+    END # BOUNDARY:outlet
+  END # DOMAIN:Default Domain
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+  DOMAIN: Default Domain
+&replace     BOUNDARY: heatingwall
+      Boundary Type = WALL
+      Create Other Side = Off
+      Interface Boundary = Off
+      Location = UP
+      BOUNDARY CONDITIONS: 
+        HEAT TRANSFER: 
+          Heat Flux in = 6600 [W m^-2]
+          Option = Heat Flux
+        END # HEAT TRANSFER:
+        MASS AND MOMENTUM: 
+          Option = No Slip Wall
+        END # MASS AND MOMENTUM:
+        WALL ROUGHNESS: 
+          Option = Smooth Wall
+        END # WALL ROUGHNESS:
+      END # BOUNDARY CONDITIONS:
+    END # BOUNDARY:heatingwall
+  END # DOMAIN:Default Domain
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+  DOMAIN: Default Domain
+&replace     BOUNDARY: wall
+      Boundary Type = WALL
+      Create Other Side = Off
+      Interface Boundary = Off
+      Location = BACK,DOWN,FRONT,$partListExcept_SixSurface_Comma$
+      BOUNDARY CONDITIONS: 
+        HEAT TRANSFER: 
+          Option = Adiabatic
+        END # HEAT TRANSFER:
+        MASS AND MOMENTUM: 
+          Option = No Slip Wall
+        END # MASS AND MOMENTUM:
+        WALL ROUGHNESS: 
+          Option = Smooth Wall
+        END # WALL ROUGHNESS:
+      END # BOUNDARY CONDITIONS:
+    END # BOUNDARY:wall
+  END # DOMAIN:Default Domain
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+setup1.SendCommand(Command="""FLOW: Flow Analysis 1
+&replace   SOLVER CONTROL: 
+    Turbulence Numerics = First Order
+    ADVECTION SCHEME: 
+      Option = High Resolution
+    END # ADVECTION SCHEME:
+    CONVERGENCE CONTROL: 
+      Length Scale Option = Conservative
+      Maximum Number of Iterations = 100
+      Minimum Number of Iterations = 1
+      Timescale Control = Auto Timescale
+      Timescale Factor = 1.0
+    END # CONVERGENCE CONTROL:
+    CONVERGENCE CRITERIA: 
+      Residual Target = 0.000001
+      Residual Type = RMS
+    END # CONVERGENCE CRITERIA:
+    DYNAMIC MODEL CONTROL: 
+      Global Dynamic Model Control = On
+    END # DYNAMIC MODEL CONTROL:
+  END # SOLVER CONTROL:
+END # FLOW:Flow Analysis 1
+
+PARAMETERIZATION:
+END""")
+Save(Overwrite=True)
+setup1.Exit()
+solution1 = system1.GetContainer(ComponentName="Solution")
+solution1.SetExecutionControl(CCL=r"""&replace SIMULATION CONTROL:
+  EXECUTION CONTROL:
+    EXECUTABLE SELECTION:
+      Double Precision = On
+    END
+    INTERPOLATOR STEP CONTROL:
+      Runtime Priority = Standard
+      MEMORY CONTROL:
+        Memory Allocation Factor = 1.0
+      END
+    END
+    PARTITIONER STEP CONTROL:
+      Multidomain Option = Independent Partitioning
+      Runtime Priority = Standard
+      EXECUTABLE SELECTION:
+        Use Large Problem Partitioner = Off
+      END
+      MEMORY CONTROL:
+        Memory Allocation Factor = 1.0
+      END
+      PARTITIONING TYPE:
+        MeTiS Type = k-way
+        Option = MeTiS
+        Partition Size Rule = Automatic
+      END
+    END
+    RUN DEFINITION:
+      Run Mode = Full
+      Solver Input File = $solveFolder$\$pureCaseName$\$pureCaseName$_files\dp0\CFX\CFX\CFX.def
+    END
+    SOLVER STEP CONTROL:
+      Runtime Priority = Standard
+      MEMORY CONTROL:
+        Memory Allocation Factor = 1.0
+      END
+      PARALLEL ENVIRONMENT:
+        Number of Processes = 2
+        Start Method = Platform MPI Local Parallel
+      END
+    END
+  END
+END
+""")
+component1 = system1.GetComponent(Name="Solution")
+component1.Update(Force=True)
+solution1.Exit()
+results1 = system1.GetContainer(ComponentName="Results")
+results1.Edit()
+results1.SendCommand(Command="""VIEW:View 1
+  Camera Mode = User Specified
+  CAMERA:
+    Option = Pivot Point and Quaternion
+    Pivot Point = 0.125, 0.06, -0.005
+    Scale = 8.90723
+    Pan = 0, 0
+    Rotation Quaternion = 0.279848, -0.364705, -0.115917, 0.880476
+    
+  END
+
+END
+
+> update
+TABLE: Table 1
+  Table Exists = True
+END""")
+results1.SendCommand(Command="""CALCULATOR:
+  Function = area
+  Location = 
+  Case Name = Case CFX
+END""")
+results1.SendCommand(Command="""CALCULATOR:
+  Function = area
+  Location = 
+  Case Name = Case CFX
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    A1 = \"flowrate:\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    A2 = \"wall temperature:\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    A3 = \"fluid temperature:\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    A4 = \"inlet pressure:\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    A5 = \"outlet pressure:\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B1 = 
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B1 = \"=massFlow()@inlet \", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B2 = 
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B2 = \"=areaAve(Temperature)@heatingwall \", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B3 = 
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B3 = \"=volumeAve(Temperature)@Default Domain \", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B4 = 
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B4 = \"=areaAve(Pressure)@inlet\", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B5 = 
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  TABLE CELLS:
+    B5 = \"=areaAve(Pressure)@outlet \", False, False, False, Left, True, 0, Font Name, 1|1, %10.3e, True, ffffff, 000000, True
+  END
+END""")
+results1.SendCommand(Command="""TABLE:Table 1
+  Export Table Only = True
+  Table Export HTML Title = 
+  Table Export HTML Caption Position = Bottom
+  Table Export HTML Caption = 
+  Table Export HTML Border Width = 1
+  Table Export HTML Cell Padding = 5
+  Table Export HTML Cell Spacing = 1
+  Table Export Lines = All
+  Table Export Trailing Separators = True
+  Table Export Separator = Tab
+END
+>table save=$solveFolder/$/$pureCaseName$/$pureCaseName$.txt, name=Table 1""")
+results1.Exit()
+Save(
+    FilePath="$solveFolder/$/$pureCaseName$/$pureCaseName$.wbpj",
+    Overwrite=True)
+exit()
